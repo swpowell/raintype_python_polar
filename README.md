@@ -1,4 +1,4 @@
-# raintype_python V1.0 (for native polar grids)
+# raintype_python_polar V1.0 (for native polar grids)
 
 Authors: Scott W. Powell and Stacy Brodzik, University of Washington
 Date: October 2016
