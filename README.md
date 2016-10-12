@@ -17,7 +17,7 @@ To install, run
 
 The installation will create a build directory and copy the code to somewhere beneath your ~/.local directory. 
 
-There is a test file and in subdirectory "example" that you can use to ensure the installation went smoothly. Just go to the directory uw_raintype_polar and running
+There is a test file and in subdirectory "example" that you can use to ensure the installation went smoothly. Just go to the directory uw_raintype_polar and run
 
 >> python -W ignore runraintype.py 
 
@@ -72,6 +72,8 @@ The "Mixed" category represents echoes surrounding convective cores (Classificat
 The two isolated convective categories largely contain shallow convective elements. In the old algorithm, convective cores of such elements were usually classified as convective, but the echo surrounding the cores was erroneously classified as stratiform. What Steiner et al. (1995) classified as stratiform is mostly now considered Isolated Convective Fringe (Classification 5). The echoes have composite heating profiles that are consistent with shallow/weak convective echoes, but the shape of droplets (based on ZDR profiles in such echoes) are more stratiform in nature, consistent with the idea that hydrometeors in such echoes consist primarily of "fallout" from nearby convection.
 
 If trying to estimate rainfall in mixed echoes with a method that depends on convective/stratiform classification, it is probably best to use a Z-R (or Z-ZDR-R, etc.) relationship that has been derived for all (convective + stratiform) echoes. If you wish to express a conservative range of potential estimates, you may treat the mixed region as all convective in one estimate and all stratiform in another. It is recommended that Isolated Convective Fringe echoes be treated with a Z-R, etc. relationship derived from stratiform regions. Convective and Isolated Convective Core may be treated with convective Z-R, etc. relationships, and Stratiform echoes, obviously, with a stratiform relationship.
+
+**Never try to interpolate the rain-type output in polar coordinates onto a Cartesian grid! If you want to do that, just use the Cartesian version of this code (i.e. interpolate the radar data, then run the algorithm).**
 
 ----------------------------------------------------------------
 
