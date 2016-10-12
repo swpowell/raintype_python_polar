@@ -2,7 +2,7 @@ from __future__ import division     #For python2 users only.
 
 def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep):
 
-    #Purpose: To make background and UNCERTAIN region masks and to compute background reflectivity.
+    #Purpose: To make background and MIXED region masks and to compute background reflectivity.
 
     import numpy as np
     import rtfunctions as rt
@@ -29,7 +29,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
     #maskcell are indices of  points within backgrndradius of a point at given radius from the radar site.
     #convcell are indices of points within maxConvRadius-5 to maxConvRadius of a convective core.
     #convcell[R,0] is the largest mask, and convcell[R,5] is the smallest mask for weaker convective echoes.
-    #Any echoes that end up getting masked by convcell (in def convectivecore) will be UNCERTAIN.
+    #Any echoes that end up getting masked by convcell (in def convectivecore) will be MIXED.
     if 'maskcell' in locals():
       #do nothing
       dummy = 0
@@ -99,7 +99,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
 #*********End mask production and background calculation*********
 
 
-def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,UNCERTAIN,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_SFC_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill):
+def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,MIXED,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_SFC_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill):
 
   import numpy as np
   import rtfunctions as rt
@@ -138,12 +138,12 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
   convsfmat[(refl < weakechothres)] = WEAK_ECHO
   convsfmat[(refl < mindbzuse)] = NO_SFC_ECHO
 
-  #Now assign UNCERTAIN radius to each core. Currently assumes all echoes within 
-  #maxConvRadius - 4 km are UNCERTAIN classification. Stronger echoes have larger 
-  #uncertain radius. Uncertain radii of 6-10 km appear to be supported by algorithm 
+  #Now assign MIXED radius to each core. Currently assumes all echoes within 
+  #maxConvRadius - 4 km are MIXED classification. Stronger echoes have larger 
+  #mixed radius. Mixed radii of 6-10 km appear to be supported by algorithm 
   #testing on WRF output as seen in Powell et al. (2016). 
 
-  #Compute what the uncertain radius is as a function of echo intensity.
+  #Compute what the mixed radius is as a function of echo intensity.
   convRadiuskm = np.empty(refl.shape)
   convRadiuskm[:] = np.nan
   convRadiuskm[(background <= dBZformaxconvradius - 15 )] = maxConvRadius - 4
@@ -152,7 +152,7 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
   convRadiuskm[(background > dBZformaxconvradius - 5 )] = maxConvRadius - 1
   convRadiuskm[(background >= dBZformaxconvradius)] = maxConvRadius
 
-  ##Assign UNCERTAIN classification to pixels near convective cores.
+  ##Assign MIXED classification to pixels near convective cores.
   
   #If data is too close to the edge throw it out. 
   isCore[maxR:numRanges,:] = 0      
@@ -179,10 +179,10 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
     (K2,L2) = (convsfmat == ISO_CONV_CORE).nonzero()
     (K3,L3) = (convsfmat == ISO_CONV_FRINGE).nonzero()
 
-    #Make masked points UNCERTAIN.
-    convsfmat[K,L] = UNCERTAIN
+    #Make masked points MIXED.
+    convsfmat[K,L] = MIXED
 
-    #Lots of data is made UNCERTAIN. Return the cores that aren't uncertain back to 
+    #Lots of data is made MIXED. Return the cores that aren't mixed back to 
     #their previous classifications.
     convsfmat[K1,L1] = CONVECTIVE
     convsfmat[K2,L2] = ISO_CONV_CORE

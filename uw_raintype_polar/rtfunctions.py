@@ -12,7 +12,7 @@ def pol2cart(phi,rho):
 
 def radialdistancemask(Xpt,Ypt,X,Y,radius,convradius):
   import numpy as np
-  #csmask is for the mask for UNCERTAIN classifications.
+  #csmask is for the mask for MIXED classifications.
   csmask = np.empty([X.shape[0],X.shape[1]])
   csmask[:] = np.nan
 

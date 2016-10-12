@@ -4,7 +4,7 @@
 #Date: March 4, 2016
 #Description: This is the driver code for the updated version of Steiner et al. (1995)
 #   convective/stratiform classification code for use with polar coordinate datasets. Adds new
-#   categories for echoes of uncertain rain-type near convective cores and correctly identifies
+#   categories for echoes of mixed rain-type near convective cores and correctly identifies
 #   isolated, often shallow, convection as convective instead of stratiform. For details, see
 #   Powell, S.W., R.A. Houze, JR., and S.R. Brodzik, 2016: Rainfall-type categorization of radar
 #   echoes using polar coordinate reflectivity data, J. Atmos. Oceanic Technol., 33, 523-538.
@@ -58,7 +58,7 @@ The variables listed in the left column immediately below are those in the user-
   weakechothres = minimum dBZ for classification as not weak echo; don't change this without a good 
      reason.  7 is about as low as we can go without getting into Bragg scatter territory.
   backgrndradius (km) = radius within which background reflectivity is computed
-  maxConvRadius (km) = maximum radius around convective core for possible uncertain classification; 
+  maxConvRadius (km) = maximum radius around convective core for possible mixed classification; 
      Powell et al. (2016) tested 5, and showed that too much convection was included 
      in stratiform region.  Don't lower this number without a good reason.
   minsize (km^2) = minimum areal coverage a contiguous echo can cover and still receive an ISO_CONV
@@ -116,7 +116,7 @@ ISO_CS_CORE = 9;      #For isolated convection scheme.
 NO_SFC_ECHO = 0;
 STRATIFORM = 1;
 CONVECTIVE = 2;
-UNCERTAIN = 3;
+MIXED = 3;
 #Many users may want to set ISO_CONV_CORE and ISO_CONV_FRINGE to the same value because the core and
 #fringe categories are closely related. Or such users can leave this code as-is and process the output
 #as if the two categories were the same category.
@@ -150,12 +150,12 @@ for m in range(0,numfiles):
         #Read designated sweep
         (dBZsweep,numRanges,numTimes) = io.readsweep(ncid,sweep_start_ray_index,sweep_end_ray_index,sweep_used,fixed_angle1,reflName,ldrName,clutterName)
 
-        #Set up masks for background and uncertain region + compute background reflectivities
+        #Set up masks for background and mixed region + compute background reflectivities
         (maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep)
 
         #Run the algorithm. 
         rtfill = -99 #Set fill value for rain-type (mainly for outer ring of unclassified data)
-        raintype = alg.convectivecore(background,dBZsweep,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,UNCERTAIN,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_SFC_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill)
+        raintype = alg.convectivecore(background,dBZsweep,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,MIXED,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_SFC_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill)
 
         #Write the data to a new CF/Radial file that is viewable in CIDD.  
         io.writecfrad(fileDirOut,sdir[m],raintype,sls_size,volume_number1,time_coverage_start1,time_coverage_end1,lat1,lon1,alt1,sweep_number1,sweep_mode1,sweep_used,fixed_angle1,ssri1,seri1,time1,numTimes,range1,meterstoFirstGate,metersBetweenGates,azimuth1,elevation1,rtfill,starttime,ins_name,title,institution,source,references)
