@@ -9,15 +9,9 @@ This is the rainfall type categorization (formerly known as convective/stratifor
 
 Setting up and using the code:
 
-Before you do anything, you'll need to make sure that you have setuptools, numpy, scipy, and netcdf4-python (plus dependencies) installed on your machine. netcdf4-python can be found, as of 2016, here: https://github.com/Unidata/netcdf4-python
+Before you do anything, you'll need to make sure that you have numpy, scipy, and netcdf4-python (plus dependencies) installed on your machine. netcdf4-python can be found, as of 2016, here: https://github.com/Unidata/netcdf4-python
 
-To install, run
-
->> python setup.py install --user
-
-The installation will create a build directory and copy the code to somewhere beneath your ~/.local directory. 
-
-There is a test file and in subdirectory "example" that you can use to ensure the installation went smoothly. Just go to the directory uw_raintype_polar and run
+The polar version of the code has no modules to install locally. Running runraintype.py with the correct input should work immediately. There is a test file and in subdirectory "example" that you can use to ensure the installation went smoothly. Just go to the directory uw_raintype_polar and run
 
 >> python -W ignore runraintype.py 
 
