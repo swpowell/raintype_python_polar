@@ -99,7 +99,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
 #*********End mask production and background calculation*********
 
 
-def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,MIXED,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_SFC_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill):
+def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,MIXED,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill):
 
   import numpy as np
   import rtfunctions as rt
@@ -134,9 +134,9 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
   convsfmat[(isCore == ISO_CS_CORE)] = ISO_CONV_CORE
   convsfmat[(isCore == 0)] = WEAK_ECHO
   convsfmat[(convsfmat == 10)] = STRATIFORM
-  convsfmat[(np.isnan(refl) == True)] = NO_SFC_ECHO
+  convsfmat[(np.isnan(refl) == True)] = NO_ECHO
   convsfmat[(refl < weakechothres)] = WEAK_ECHO
-  convsfmat[(refl < mindbzuse)] = NO_SFC_ECHO
+  convsfmat[(refl < mindbzuse)] = NO_ECHO
 
   #Now assign MIXED radius to each core. Currently assumes all echoes within 
   #maxConvRadius - 4 km are MIXED classification. Stronger echoes have larger 
@@ -195,9 +195,9 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
   #Make sure original convective cores are CONVECTIVE.
   convsfmat[isCore == CS_CORE] = CONVECTIVE
 
-  #If there is no data, or reflectivity is very low, classify as NO SURFACE ECHO.
-  convsfmat[np.isnan(refl)==1] = NO_SFC_ECHO
-  convsfmat[refl < mindbzuse] = NO_SFC_ECHO
+  #If there is no data, or reflectivity is very low, classify as NO ECHO.
+  convsfmat[np.isnan(refl)==1] = NO_ECHO
+  convsfmat[refl < mindbzuse] = NO_ECHO
   
   #Classify WEAK_ECHO
   convsfmat[refl < weakechothres] = WEAK_ECHO

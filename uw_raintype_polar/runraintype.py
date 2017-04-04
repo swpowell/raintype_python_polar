@@ -99,8 +99,8 @@ ldrName = 'LDRH_S'
 clutterName = 'CMD_FLAG_S'
 
 ## Information about where the reflectivity data is located and where outputs should be written. Make sure your directory names end with a /.
-fileDir = '../example/';
-fileDirOut = './';
+fileDir = './SPOLCFlinks/';
+fileDirOut = '/maloney-scratch/spowell/SPOL/sur/cf_raintype/';
 
 title = 'Rain type classification of DYNAMO SPolKa radar data in polar coordinates';
 institution = 'University of Washington';
@@ -113,7 +113,7 @@ references = 'http://www.atmos.uw.edu/MG/PDFs/JTECH16_Powell-etal_RainCat.pdf';
 # Output constants: Do not change these without a good reason!
 CS_CORE = 8;          #For convective core scheme.
 ISO_CS_CORE = 9;      #For isolated convection scheme.
-NO_SFC_ECHO = 0;
+NO_ECHO = 0;
 STRATIFORM = 1;
 CONVECTIVE = 2;
 MIXED = 3;
@@ -143,7 +143,7 @@ for m in range(0,numfiles):
 
     #Filename for input
         fname = fileDir + sdir[m]
-
+        print(fname)
         #Read in CF/Radial file
         (sls_size,sweep_number1,volume_number1,time_coverage_start1,time_coverage_end1,starttime,lat1,lon1,alt1,sweep_mode1,fixed_angle1,time1,range1,azimuth1,elevation1,ssri1,seri1,meterstoFirstGate,metersBetweenGates,kmToFirstGate,kmBetweenGates,sweep_start_ray_index,sweep_end_ray_index,ins_name,ncid) = io.readcfrad(fname,sweep_used,reflName,ldrName,clutterName)
 
@@ -155,7 +155,7 @@ for m in range(0,numfiles):
 
         #Run the algorithm. 
         rtfill = -99 #Set fill value for rain-type (mainly for outer ring of unclassified data)
-        raintype = alg.convectivecore(background,dBZsweep,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,MIXED,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_SFC_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill)
+        raintype = alg.convectivecore(background,dBZsweep,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRATIFORM,MIXED,WEAK_ECHO,ISO_CONV_CORE,ISO_CONV_FRINGE,NO_ECHO,dBZformaxconvradius,maxConvRadius,weakechothres,deepcoszero,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,mindbzuse,sectorarea,convcell,maxR,numRanges,numTimes,rtfill)
 
         #Write the data to a new CF/Radial file that is viewable in CIDD.  
         io.writecfrad(fileDirOut,sdir[m],raintype,sls_size,volume_number1,time_coverage_start1,time_coverage_end1,lat1,lon1,alt1,sweep_number1,sweep_mode1,sweep_used,fixed_angle1,ssri1,seri1,time1,numTimes,range1,meterstoFirstGate,metersBetweenGates,azimuth1,elevation1,rtfill,starttime,ins_name,title,institution,source,references)

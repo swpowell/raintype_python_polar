@@ -133,7 +133,7 @@ def writecfrad(fileDirOut,sdir,raintype,sls_size,volume_number1,time_coverage_st
     ncid.source = source
     ncid.institution = institution 
     ncid.references = references
-    ncid.comment = "NO SURFACE ECHO = 0, STRATIFORM = 1, CONVECTIVE = 2, MIXED = 3, ISOLATED CONVECTIVE CORE = 4, ISOLATED CONVECTIVE FRINGE = 5, WEAK ECH0 = 6"
+    ncid.comment = "NO ECHO = 0, STRATIFORM = 1, CONVECTIVE = 2, MIXED = 3, ISOLATED CONVECTIVE CORE = 4, ISOLATED CONVECTIVE FRINGE = 5, WEAK ECH0 = 6"
     ncid.instrument_name = str(ins_name)
 
     #Create dimensions
