@@ -78,7 +78,8 @@ def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslop
   #touching pixels that share a corner don't count. Edges must touch.
   #echoes contains the blob objects, numechoes is just a count of them.
   (echoes,numechoes) = nd.label(rain)
-
+  
+  #Get 2D indices of echo objects.
   K = get_indices_sparse(echoes)
   K = K[1:] #Exclude echoes==0.
 
