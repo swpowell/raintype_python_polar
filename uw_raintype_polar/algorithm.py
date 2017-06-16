@@ -1,6 +1,6 @@
 from __future__ import division     #For python2 users only.
 
-def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep):
+def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,filenum,maskcell):
 
     #Purpose: To make background and MIXED region masks and to compute background reflectivity.
 
@@ -30,7 +30,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
     #convcell are indices of points within maxConvRadius-5 to maxConvRadius of a convective core.
     #convcell[R,0] is the largest mask, and convcell[R,5] is the smallest mask for weaker convective echoes.
     #Any echoes that end up getting masked by convcell (in def convectivecore) will be MIXED.
-    if 'maskcell' in locals():
+    if filenum != 0:
       #do nothing
       dummy = 0
       del dummy
@@ -40,12 +40,12 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
       convcell = np.empty([numRanges,5],dtype=object)
       for R in range(minR,maxR+1):
         [mask,bgmask] = rt.radialdistancemask(X[R-1,centerphi-1],Y[R-1,centerphi-1],X,Y,backgrndradius,maxConvRadius)
-        [I,J] = (bgmask==1).nonzero()
-        [I2,J2] = (mask>=1).nonzero()
-        [I3,J3] = (mask>=2).nonzero()
-        [I4,J4] = (mask>=3).nonzero()
-        [I5,J5] = (mask>=4).nonzero()
-        [I6,J6] = (mask>=5).nonzero()
+        [I,J] = np.where(bgmask==1)
+        [I2,J2] = np.where(mask>=1)
+        [I3,J3] = np.where(mask>=2)
+        [I4,J4] = np.where(mask>=3)
+        [I5,J5] = np.where(mask>=4)
+        [I6,J6] = np.where(mask>=5)
         #To create the masks, convert the 2D matrices of data to 1D arrays. Find the indices
         #of the 1D arrays that should be masked. After masking in another subroutine
         #(convectivecore), these will be converted back to 2D matrices.
@@ -93,7 +93,10 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
     background[background == 0] = np.nan
     background = np.transpose(10*np.log10(background))
 
-    return(maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR)
+    if filenum == 0:
+      return(maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR)
+    else:
+      return(background,dBZsweep,minR,maxR)
 
 
 #*********End mask production and background calculation*********
@@ -103,7 +106,7 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
 
   import numpy as np
   import rtfunctions as rt
-
+ 
   #Allocate isCore, a matrix that contains whether a grid point contains a convective core
   #and convsfmat, what will ultimately be the final rain-type classification.
   isCore = np.ones(background.shape)
@@ -127,7 +130,7 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
   #Run the shallow, isolated convective core algorithm to detect small echoes that were
   #often identified as STRATIFORM by Steiner et al. (1995)
   (convsfmat,isCore) = rt.makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,ISO_CONV_FRINGE,WEAK_ECHO,ISO_CS_CORE,CS_CORE,sectorarea,numTimes)
- 
+
   #Make initial guesses of classifications. There may be some redundancy in this code,
   #later, but these operations are fast, I think. Better safe than sorry.
   convsfmat[(isCore == CS_CORE)] = CONVECTIVE
@@ -158,8 +161,8 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
   isCore[maxR:numRanges,:] = 0      
  
   #Find 2D indices of convective cores.
-  (I,J) = (isCore==CS_CORE).nonzero()
-
+  (I,J) = np.where(isCore==CS_CORE)
+ 
   for k in range(0,len(I)):
     #Find 1D index of convective core.
     indexhold = np.ravel_multi_index((I[k],J[k]),convsfmat.shape,order="F")
@@ -175,9 +178,9 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
     (K,L) = np.unravel_index(maskind,convsfmat.shape,order='F')
 
     #Save indices for points that were previously CONVECTIVE or ISOLATED CONVECTIVE.
-    (K1,L1) = (convsfmat == CONVECTIVE).nonzero()
-    (K2,L2) = (convsfmat == ISO_CONV_CORE).nonzero()
-    (K3,L3) = (convsfmat == ISO_CONV_FRINGE).nonzero()
+    (K1,L1) = np.where(convsfmat == CONVECTIVE)
+    (K2,L2) = np.where(convsfmat == ISO_CONV_CORE)
+    (K3,L3) = np.where(convsfmat == ISO_CONV_FRINGE)
 
     #Make masked points MIXED.
     convsfmat[K,L] = MIXED

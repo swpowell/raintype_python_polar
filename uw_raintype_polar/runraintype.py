@@ -20,6 +20,9 @@ import os
 import algorithm as alg
 import cfrad_io as io
 import warnings
+import time
+
+t0 = time.time()
 
 """
 The variables listed in the left column immediately below are those in the user-input
@@ -100,7 +103,7 @@ clutterName = 'CMD_FLAG_S'
 
 ## Information about where the reflectivity data is located and where outputs should be written. Make sure your directory names end with a /.
 fileDir = './SPOLCFlinks/';
-fileDirOut = '/maloney-scratch/spowell/SPOL/sur/cf_raintype/';
+fileDirOut = './newtestoutput/';
 
 title = 'Rain type classification of DYNAMO SPolKa radar data in polar coordinates';
 institution = 'University of Washington';
@@ -141,7 +144,7 @@ for m in range(0,numfiles):
 
     try:
 
-    #Filename for input
+        #Filename for input
         fname = fileDir + sdir[m]
         print(fname)
         #Read in CF/Radial file
@@ -151,7 +154,10 @@ for m in range(0,numfiles):
         (dBZsweep,numRanges,numTimes) = io.readsweep(ncid,sweep_start_ray_index,sweep_end_ray_index,sweep_used,fixed_angle1,reflName,ldrName,clutterName)
 
         #Set up masks for background and mixed region + compute background reflectivities
-        (maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep)
+        if m == 0:
+          (maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,None)
+        else:
+          (background,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,maskcell)
 
         #Run the algorithm. 
         rtfill = -99 #Set fill value for rain-type (mainly for outer ring of unclassified data)
@@ -162,3 +168,6 @@ for m in range(0,numfiles):
 
     except:
         Warning(str('Something went wrong processing this file! ' + fileDir + sdir[m])) 
+
+t1 = time.time()
+print(t1-t0)

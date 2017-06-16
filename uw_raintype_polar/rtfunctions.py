@@ -41,6 +41,7 @@ def radialdistancemask(Xpt,Ypt,X,Y,radius,convradius):
 def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,ISO_CONV_FRINGE,WEAK_ECHO,ISO_CS_CORE,CS_CORE,sectorarea,numTimes):
   import numpy as np
   from scipy import ndimage as nd
+  import time
 
   #Allocate matrix indicating whether rain is occurring.
   rain = np.zeros((refl.shape),dtype=np.int)
@@ -65,12 +66,11 @@ def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslop
   #echoes contains the blob objects, numechoes is just a count of them.
   (echoes,numechoes) = nd.label(rain)
 
- # loc = nd.find_objects(echoes)
- 
   for i in range(0,numechoes):
-    #Find 2D indices of echo object.
-    (I,J) = (rain*(echoes==i+1)==1).nonzero()
 
+    #Find 2D indices of echo object.
+    (I,J) = np.where(echoes==i+1)
+    
     #Compute the total areal coverage of the echo object.
     clusterarea = np.nansum(sectorarea[I,J])    #In km^2
 
@@ -94,9 +94,6 @@ def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslop
       truncvalue[I,J] = shallowconvmin + ((clusterarea-startslope)/(maxsize-startslope))*(truncZconvthres-shallowconvmin)
 
   #Unwrap and send variables back to original size.
-  #truncvalue = truncvalue[:,180:540]
-  #isCore = isCore_minsize[:,180:540]
-  #convsfmat = convsfmat_minsize[:,180:540]
   truncvalue = truncvalue[:,halfnumTimes:halfnumTimes+numTimes]
   isCore = isCore_minsize[:,halfnumTimes:halfnumTimes+numTimes]
   convsfmat = convsfmat_minsize[:,halfnumTimes:halfnumTimes+numTimes]
