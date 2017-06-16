@@ -20,9 +20,6 @@ import os
 import algorithm as alg
 import cfrad_io as io
 import warnings
-import time
-
-t0 = time.time()
 
 """
 The variables listed in the left column immediately below are those in the user-input
@@ -105,6 +102,9 @@ clutterName = 'CMD_FLAG_S'
 fileDir = './SPOLCFlinks/';
 fileDirOut = './newtestoutput/';
 
+#Set repeatmask to 0 if all files in the batch have the same spacing in azimuth and range and the code will run faster by about 30%. If you think that your files might differ a bit or you just want to be safe, set repeatmask to 1. 
+repeatmask = 1
+
 title = 'Rain type classification of DYNAMO SPolKa radar data in polar coordinates';
 institution = 'University of Washington';
 source = 'Code used https://github.com/swpowell/raintype_python_polar';
@@ -154,7 +154,7 @@ for m in range(0,numfiles):
         (dBZsweep,numRanges,numTimes) = io.readsweep(ncid,sweep_start_ray_index,sweep_end_ray_index,sweep_used,fixed_angle1,reflName,ldrName,clutterName)
 
         #Set up masks for background and mixed region + compute background reflectivities
-        if m == 0:
+        if m == 0 or repeatmask == 1:
           (maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,None)
         else:
           (background,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,maskcell)
@@ -168,6 +168,3 @@ for m in range(0,numfiles):
 
     except:
         Warning(str('Something went wrong processing this file! ' + fileDir + sdir[m])) 
-
-t1 = time.time()
-print(t1-t0)
