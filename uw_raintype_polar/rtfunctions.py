@@ -38,6 +38,20 @@ def radialdistancemask(Xpt,Ypt,X,Y,radius,convradius):
 #********End radialdistancemask***************
 
 
+#The following 2 functions are to speed up makedBZcluster. From https://stackoverflow.com/questions/33281957/faster-alternative-to-numpy-where
+
+def compute_M(data):
+  from scipy.sparse import csr_matrix
+  import numpy as np
+  cols = np.arange(data.size)
+  return csr_matrix((cols, (data.ravel(), cols)),
+                    shape=(data.max() + 1, data.size))
+
+def get_indices_sparse(data):
+  import numpy as np
+  M = compute_M(data)
+  return [np.unravel_index(row.data, data.shape) for row in M]
+
 def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,ISO_CONV_FRINGE,WEAK_ECHO,ISO_CS_CORE,CS_CORE,sectorarea,numTimes):
   import numpy as np
   from scipy import ndimage as nd
@@ -65,11 +79,14 @@ def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslop
   #echoes contains the blob objects, numechoes is just a count of them.
   (echoes,numechoes) = nd.label(rain)
 
-  for i in range(0,numechoes):
+  K = get_indices_sparse(echoes)
+  K = K[1:] #Exclude echoes==0.
 
-    #Find 2D indices of echo object.
-    (I,J) = np.where(echoes==i+1)
-    
+  for i in np.arange(len(K)):
+
+    I = K[i][0] 
+    J = K[i][1]
+
     #Compute the total areal coverage of the echo object.
     clusterarea = np.nansum(sectorarea[I,J])    #In km^2
 
