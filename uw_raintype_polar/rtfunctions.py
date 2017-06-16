@@ -41,7 +41,6 @@ def radialdistancemask(Xpt,Ypt,X,Y,radius,convradius):
 def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslope,shallowconvmin,truncZconvthres,ISO_CONV_FRINGE,WEAK_ECHO,ISO_CS_CORE,CS_CORE,sectorarea,numTimes):
   import numpy as np
   from scipy import ndimage as nd
-  import time
 
   #Allocate matrix indicating whether rain is occurring.
   rain = np.zeros((refl.shape),dtype=np.int)
