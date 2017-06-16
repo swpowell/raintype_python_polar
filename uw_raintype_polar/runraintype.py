@@ -102,7 +102,7 @@ clutterName = 'CMD_FLAG_S'
 fileDir = './SPOLCFlinks/';
 fileDirOut = './newtestoutput/';
 
-#Set repeatmask to 0 if all files in the batch have the same spacing in azimuth and range and the code will run faster by about 30%. If you think that your files might differ a bit or you just want to be safe, set repeatmask to 1. 
+#Only set repeatmask to 0 or 1. Set repeatmask to 0 if all files in the batch have the same spacing in azimuth and range AND the dimensions numRanges and numTimes in the first file of your batch are as large as they will be in any file. Otherwise, make repeatmask = 1. Setting repeatmask = 0 will make the code will run faster by about 30%. If you're not sure what to do, set repeatmask = 1 to be safe. If only running one file at a time, repeatmask is irrelevant.
 repeatmask = 1
 
 title = 'Rain type classification of DYNAMO SPolKa radar data in polar coordinates';
@@ -155,9 +155,9 @@ for m in range(0,numfiles):
 
         #Set up masks for background and mixed region + compute background reflectivities
         if m == 0 or repeatmask == 1:
-          (maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,None)
+          (maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,repeatmask,None)
         else:
-          (background,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,maskcell)
+          (background,dBZsweep,minR,maxR) = alg.convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,m,repeatmask,maskcell)
 
         #Run the algorithm. 
         rtfill = -99 #Set fill value for rain-type (mainly for outer ring of unclassified data)

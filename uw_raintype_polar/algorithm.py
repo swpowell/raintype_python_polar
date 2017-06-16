@@ -1,6 +1,6 @@
 from __future__ import division     #For python2 users only.
 
-def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,filenum,maskcell):
+def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxConvRadius,sweep_used,dBZsweep,filenum,repeat,maskcell):
 
     #Purpose: To make background and MIXED region masks and to compute background reflectivity.
 
@@ -30,7 +30,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
     #convcell are indices of points within maxConvRadius-5 to maxConvRadius of a convective core.
     #convcell[R,0] is the largest mask, and convcell[R,5] is the smallest mask for weaker convective echoes.
     #Any echoes that end up getting masked by convcell (in def convectivecore) will be MIXED.
-    if filenum != 0:
+    if filenum != 0 and repeat == 0:
       #do nothing
       dummy = 0
       del dummy
@@ -93,7 +93,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
     background[background == 0] = np.nan
     background = np.transpose(10*np.log10(background))
 
-    if filenum == 0:
+    if filenum == 0 or repeat == 1:
       return(maskcell,convcell,background,sectorarea,dBZsweep,minR,maxR)
     else:
       return(background,dBZsweep,minR,maxR)
