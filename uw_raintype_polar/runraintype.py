@@ -1,4 +1,4 @@
-"""
+a"""
  ****Rain-type Classification code of Powell et al. (2016, JTECH): Driver code in python*****#
 #Author: Scott Powell and Stacy Brodzik, University of Washington
 #Date: March 4, 2016
@@ -99,8 +99,8 @@ ldrName = 'LDRH_S'
 clutterName = 'CMD_FLAG_S'
 
 ## Information about where the reflectivity data is located and where outputs should be written. Make sure your directory names end with a /.
-fileDir = './SPOLCFlinks/';
-fileDirOut = './newtestoutput/';
+fileDir = './example/';
+fileDirOut = './';
 
 #Only set repeatmask to 0 or 1. Set repeatmask to 0 if all files in the batch have the same spacing in azimuth and range AND the dimensions numRanges and numTimes in the first file of your batch are as large as they will be in any file. Otherwise, make repeatmask = 1. Setting repeatmask = 0 will make the code will run faster by about 30%. If you're not sure what to do, set repeatmask = 1 to be safe. If only running one file at a time, repeatmask is irrelevant.
 repeatmask = 1
