@@ -120,6 +120,6 @@ def makedBZcluster(refl,isCore,convsfmat,weakechothres,minsize,maxsize,startslop
   isCore[refl >= truncvalue] = ISO_CS_CORE
 
   #But if reflectivity exceeds original reflectivity threshold, classify as CONVECTIVE core.
-  isCore[ (refl >= truncZconvthres)*(convsfmat != ISO_CONV_FRINGE)==1 ] = CS_CORE
+  isCore[ (refl >= truncZconvthres)&(convsfmat != ISO_CONV_FRINGE)] = CS_CORE
 
   return (convsfmat,isCore)

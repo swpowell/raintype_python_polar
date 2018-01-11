@@ -16,13 +16,11 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
 
     #Any data within minR of the radar site will get NaNed out.
     minR = int(round(0.125/kmBetweenGates))
+    if minR == 0:
+      minR = 1
 
     #Any data beyond maxR of the radar size will also get NaNed out.
-    if sweep_used == 0:
-      maxR = int(round(numRanges-0.5*backgrndradius/kmBetweenGates))
-    else:
-      minR = int(round(5/kmBetweenGates))
-      maxR = int(round(30/kmBetweenGates))
+    maxR = int(round(numRanges-0.5*backgrndradius/kmBetweenGates))
 
     #Create masks. One mask per ring of data (i.e. one mask per radius from center).
     #Only do this if mask doesn't yet exist. Only needs to occur on first file in batch.
@@ -38,6 +36,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
       centerphi = halfnumTimes  #180
       maskcell = np.empty([numRanges,1],dtype=object)
       convcell = np.empty([numRanges,5],dtype=object)
+      #convcell = [[[],[],[],[],[]] for _ in range(numRanges)]
       for R in range(minR,maxR+1):
         [mask,bgmask] = rt.radialdistancemask(X[R-1,centerphi-1],Y[R-1,centerphi-1],X,Y,backgrndradius,maxConvRadius)
         [I,J] = np.where(bgmask==1)
@@ -51,11 +50,11 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
         #(convectivecore), these will be converted back to 2D matrices.
         centerval = np.ravel_multi_index((R-1,centerphi-1),dBZsweep.shape,order="F")-1
         maskcell[R] = [np.ravel_multi_index((I,J),bgmask.shape,order="F")-centerval]
-        convcell[R,0] = [np.ravel_multi_index((I2,J2),mask.shape,order="F")-centerval]
-        convcell[R,1] = [np.ravel_multi_index((I3,J3),mask.shape,order="F")-centerval]
-        convcell[R,2] = [np.ravel_multi_index((I4,J4),mask.shape,order="F")-centerval]
-        convcell[R,3] = [np.ravel_multi_index((I5,J5),mask.shape,order="F")-centerval]
-        convcell[R,4] = [np.ravel_multi_index((I6,J6),mask.shape,order="F")-centerval]
+        convcell[R,0] = np.ravel_multi_index((I2,J2),mask.shape,order="F")-centerval
+        convcell[R,1] = np.ravel_multi_index((I3,J3),mask.shape,order="F")-centerval
+        convcell[R,2] = np.ravel_multi_index((I4,J4),mask.shape,order="F")-centerval
+        convcell[R,3] = np.ravel_multi_index((I5,J5),mask.shape,order="F")-centerval
+        convcell[R,4] = np.ravel_multi_index((I6,J6),mask.shape,order="F")-centerval
 
       #Compute the areal coverage of each data point. (This gets larger farther from radar.)
       sectorarea = np.empty([numRanges,numTimes])
@@ -66,7 +65,7 @@ def convsf(kmToFirstGate,kmBetweenGates,numRanges,numTimes,backgrndradius,maxCon
       #sectorarea = np.concatenate((sectorarea[:,180:360],sectorarea,sectorarea[:,0:180]),axis=1)
       sectorarea = np.concatenate((sectorarea[:,halfnumTimes:numTimes+1],sectorarea,sectorarea[:,0:halfnumTimes]),axis=1)
   
-    dBZsweep[1:minR+1,:] = np.nan       #NaN out reflectivity close to radar.
+    dBZsweep[0:minR+1,:] = np.nan       #NaN out reflectivity close to radar.
     Zsweep = 10**(0.1*dBZsweep)         #Convert dBZ to Z.
 
     #Compute background reflectivity at each point.
@@ -162,38 +161,47 @@ def convectivecore(background,refl,minZdiff,CS_CORE,ISO_CS_CORE,CONVECTIVE,STRAT
  
   #Find 2D indices of convective cores.
   (I,J) = np.where(isCore==CS_CORE)
- 
-  for k in range(0,len(I)):
-    #Find 1D index of convective core.
-    indexhold = np.ravel_multi_index((I[k],J[k]),convsfmat.shape,order="F")
+
+  if len(I) > 0:  #This "if" allows code to run even if there are no convective cores.
+
+    #Find 1D indices of convective cores.
+    indexhold = np.ravel_multi_index((I,J),convsfmat.shape,order="F")
 
     #Add indices from mask (convcell) to indexhold.
-    maskind = indexhold + convcell[I[k],int(maxConvRadius-convRadiuskm[I[k],J[k]])][0]
+
+    #Accrue all of the masks in a list.
+    fulllist = convcell[I,np.int16(maxConvRadius-convRadiuskm[I,J])]
+
+    #Convert the list of lists to an array.
+    listarray = 9e16*np.ones([len(fulllist),len(max(fulllist,key=lambda x: len(x)))]) #9e16 is a missing value.
+    for i,j in enumerate(fulllist):
+      listarray[i][0:len(j)] = j
+    maskind = indexhold[:,None] + listarray
 
     #Wrap data near 0 or 359 degrees around for continuity.
     maskind[maskind < 0] = convsfmat.size + maskind[maskind < 0]
     maskind[maskind > convsfmat.size-1] = maskind[maskind > convsfmat.size-1] - convsfmat.size
-
-    #Convert masked data points back to 2D indices
-    (K,L) = np.unravel_index(maskind,convsfmat.shape,order='F')
+ 
+    #Restore large values to missing value.
+    maskind[maskind>9e9] = 9e16
+  
+    #Get 2D index values of points that could be mixed.
+    (K,L) = np.unravel_index(np.unique(maskind)[:-1].astype('int64'),convsfmat.shape,order='F') #-1 to exclude missing value.
 
     #Save indices for points that were previously CONVECTIVE or ISOLATED CONVECTIVE.
     (K1,L1) = np.where(convsfmat == CONVECTIVE)
     (K2,L2) = np.where(convsfmat == ISO_CONV_CORE)
     (K3,L3) = np.where(convsfmat == ISO_CONV_FRINGE)
-
-    #Make masked points MIXED.
-    convsfmat[K,L] = MIXED
-
+ 
+    #Make masked point MIXED.
+    convsfmat[K,L] = MIXED  
+ 
     #Lots of data is made MIXED. Return the cores that aren't mixed back to 
     #their previous classifications.
     convsfmat[K1,L1] = CONVECTIVE
     convsfmat[K2,L2] = ISO_CONV_CORE
     convsfmat[K3,L3] = ISO_CONV_FRINGE
-    del(maskind,indexhold)
- 
-  #Reset the 2D indices for next time. Probably not necessary.
-  del(I,J)
+    del(maskind,indexhold,listarray)
 
   #Make sure original convective cores are CONVECTIVE.
   convsfmat[isCore == CS_CORE] = CONVECTIVE

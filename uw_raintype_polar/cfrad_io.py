@@ -59,13 +59,19 @@ def readsweep(ncid,sweep_start_ray_index,sweep_end_ray_index,sweep_used,fixed_an
     import numpy as np
 
     #Get some basic information and allocate space for reflectivity field along the chosen sweep.
-    starttimes = ncid.variables['ray_start_index'][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1]
-    lengths = ncid.variables['ray_n_gates'][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1]
-    numTimes = len(lengths)
-    numRanges = len(ncid.variables['range'][:])
+
+    try:  #ray_start_index and ray_n_gates might not be in some Cf/Radial files, particularly if the number of gates per ray is constant.
+      starttimes = ncid.variables['ray_start_index'][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1]
+      lengths = ncid.variables['ray_n_gates'][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1]
+      numTimes = len(lengths)
+      numRanges = len(ncid.variables['range'][:])
+    except:  #If not present, we must assume same number of gates in each ray. User should check their output to ensure it looks reasonable. If not, then ray_start_index and ray_n_gates should probably be added to their input files. This is also likely to be the case with files that have 2D, instead of 1D, moment data.
+      numTimes = sweep_end_ray_index[sweep_used]+1-sweep_start_ray_index[sweep_used]
+      numRanges = len(ncid.variables['range'])
+
     dBZsweep = np.empty([numRanges,numTimes])
     dBZsweep[:] = np.nan
-    
+
     #Get fill values for missing data.
     refl_fill_value = ncid.variables[reflName]._FillValue
 
@@ -90,14 +96,24 @@ def readsweep(ncid,sweep_start_ray_index,sweep_end_ray_index,sweep_used,fixed_an
       csweep[:] = np.nan
 
     #Get reflectivity data, and LDR and clutter data if the latter two are present.
-    for phi in range(0,len(starttimes)):
-      dBZsweep[0:lengths[phi],phi] = ncid.variables[reflName][starttimes[phi]:starttimes[phi]+lengths[phi]]
-      if 'ldrsweep' in locals():
-        ldrsweep[0:lengths[phi],phi] = ncid.variables[ldrName][starttimes[phi]:starttimes[phi]+lengths[phi]]
-      if 'csweep' in locals():
-        csweep[0:lengths[phi],phi] = ncid.variables[clutterName][starttimes[phi]:starttimes[phi]+lengths[phi]]
-    del phi
 
+    #First we need to figure out if data is written in 1D or 2D. If in 3D, an error will occur.
+    dimsize = len(ncid.variables[reflName].shape)
+    if dimsize == 1:
+      for phi in range(0,len(starttimes)):
+        dBZsweep[0:lengths[phi],phi] = ncid.variables[reflName][starttimes[phi]:starttimes[phi]+lengths[phi]]
+        if 'ldrsweep' in locals():
+          ldrsweep[0:lengths[phi],phi] = ncid.variables[ldrName][starttimes[phi]:starttimes[phi]+lengths[phi]]
+        if 'csweep' in locals():
+          csweep[0:lengths[phi],phi] = ncid.variables[clutterName][starttimes[phi]:starttimes[phi]+lengths[phi]]
+      del phi
+    elif dimsize == 2:
+      dBZsweep = np.transpose(ncid.variables[reflName][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1,:])
+      if 'ldrsweep' in locals():
+        ldrsweep = np.transpose(ncid.variables[ldrName][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1,:])
+      if 'csweep' in locals():
+        csweep = np.transpose(ncid.variables[clutterName][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1,:])
+        
     #Change missing reflectivity data to NaN.
     dBZsweep[dBZsweep == refl_fill_value] = np.nan
     #If LDR data is available, NaN out any second-trip echo.
@@ -154,15 +170,15 @@ def writecfrad(fileDirOut,sdir,raintype,sls_size,volume_number1,time_coverage_st
     tce[:] = time_coverage_end1[:]
     tce.standard_name = "data_volume_end_time_utc"
     lat = ncid.createVariable('latitude',np.double)
-    lat[:] = lat1[:]
+    lat[:] = np.mean(lat1[:])
     lat.standard_name = "latitude"
     lat.units = "degrees_north"
     lon = ncid.createVariable('longitude',np.double)
-    lon[:] = lon1[:]
+    lon[:] = np.mean(lon1[:])
     lon.standard_name = "longitude"
     lon.units = "degrees_east"
     alt = ncid.createVariable('altitude',np.double)
-    alt[:] = alt1[:]
+    alt[:] = np.mean(alt1[:])
     alt.standard_name = "altitude"
     alt.units = "meters"
     alt.positive = "up"
