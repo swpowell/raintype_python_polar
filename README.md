@@ -2,7 +2,7 @@
 
 Authors: Scott W. Powell and Stacy Brodzik, University of Washington
 Date: October 2016
-Email: spowell@atmos.colostate.edu, brodzik@atmos.uw.edu
+Email: scott.powell@nps.edu, brodzik@atmos.uw.edu
 This is the rainfall type categorization (formerly known as convective/stratiform classification) of Powell et al. (2016, JTECH). It is an update to the Steiner et al. (1995) method of classifying convective and stratiform echoes of tropical and subtropical precipitation. This is the version that runs on the native gridding (the polar coordinate system) of radar output. If you would like to run this algorithm on interpolated radar data in Cartesian coordinates, see the other version for this code (raintype_python).
 
 ----------------------------------------------------------------
