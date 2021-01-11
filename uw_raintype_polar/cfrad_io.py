@@ -4,27 +4,27 @@ def readcfrad(fname,sweep_used,reflName,ldrName,clutterName):
     import numpy as np
     import warnings
 
-    #Check to make sure file isn't an RHI file. 
     ncid = nc4.Dataset(fname,'r')
-#    if max(ncid.variables['elevation'][:]) > 40:
-#      Warning('This file might be a misplaced RHI file!')
-#      print(fname)
+    # Check to make sure file isn't an RHI file. 
+    if max(ncid.variables['elevation'][:]) > 40:
+      Warning('This file might be a misplaced RHI file!')
+      print(fname)
 
-    #Read in some variables just for writing out to file. A few will be called in the algorithm.
+    # Read in some variables just for writing out to file. A few will be called in the algorithm.
     sls_size = 32
     starttime = 'None'
     sweep_number1 = ncid.variables['sweep_number'][sweep_used]
     volume_number1 = ncid.variables['volume_number']
     time_coverage_start1 = ncid.variables['time_coverage_start']
-    #This for-loop is for CIDD to correctly display time and date. Sometimes this field gets read
-    #in as a masked array and sometimes it doesn't.
+    
+    # This for-loop is for CIDD to correctly display time and date. Sometimes this field gets read
+    # in as a masked array and sometimes it doesn't.
+    starttime = []
     for i in range(0,len(time_coverage_start1)):
-      if i == 0:
-        starttime = time_coverage_start1[i]
-      elif i < 20: #20 because starttime should always take the form YYYY-MM-DDTHH:MM:SSZ
-        starttime = starttime + time_coverage_start1[i]
-      else:
-        break
+      if i < 20:
+        starttime.append(time_coverage_start1[i].data)    
+    starttime = ''.join([str(starttime[i])[2] for i in range(len(starttime))])
+    
     time_coverage_end1 = ncid.variables['time_coverage_end']
     lat1 = ncid.variables['latitude']
     lon1 = ncid.variables['longitude']
@@ -39,7 +39,7 @@ def readcfrad(fname,sweep_used,reflName,ldrName,clutterName):
     seri1 = ncid.variables['sweep_end_ray_index']
     ins_name = ncid.instrument_name
 
-    #These are some values that we need for the algorithm. 
+    # These are some values that we need for the algorithm. 
     meterstoFirstGate = range1.meters_to_center_of_first_gate
     metersBetweenGates = range1.meters_between_gates
     kmToFirstGate = meterstoFirstGate/1000
@@ -58,7 +58,7 @@ def readsweep(ncid,sweep_start_ray_index,sweep_end_ray_index,sweep_used,fixed_an
     import netCDF4 as nc4
     import numpy as np
 
-    #Get some basic information and allocate space for reflectivity field along the chosen sweep.
+    # Get some basic information and allocate space for reflectivity field along the chosen sweep.
 
     try:  #ray_start_index and ray_n_gates might not be in some Cf/Radial files, particularly if the number of gates per ray is constant.
       starttimes = ncid.variables['ray_start_index'][sweep_start_ray_index[sweep_used]:sweep_end_ray_index[sweep_used]+1]
